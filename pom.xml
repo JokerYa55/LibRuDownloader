@@ -42,5 +42,11 @@
             <version>2.6</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20190722</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 </project>

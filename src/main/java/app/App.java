@@ -1,12 +1,18 @@
 package app;
 
 import app.service.LibRuService;
+import app.util.ZipUtil;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -30,10 +36,12 @@ public class App implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         log.info("test");
-
+        JSONObject json = new JSONObject();
+        json.put("Фантастика", new ArrayList<>());
         libService.getUrlList("http://lib.ru/RUFANT/")
                 .parallelStream()
                 .filter(t -> t.getName().matches("^[а-я]+\\s[а-я]+$") && !t.getName().equals("огл"))
+                .limit(5)
                 .collect(Collectors.toMap(value -> value.getName(), value -> libService.getUrlList(value.getUrl())))
                 .forEach((t, u) -> {
                     System.out.println("Автор : " + t);
@@ -46,12 +54,17 @@ public class App implements CommandLineRunner {
                             .forEach(t1 -> {
                                 System.out.println("\tКнига : " + t1.getName() + " url = " + t1.getUrl());
                                 try {
-                                    FileUtils.copyURLToFile(new URL(t1.getUrl()), new File("c:/temp/lib/"+UUID.randomUUID().toString()));
-                                } catch (Exception ex) {
+                                    String filename = "c:/temp/lib/" + UUID.randomUUID().toString();
+                                    log.info("filename = {} : zip = {}", filename, ZipUtil.compress(filename));
+                                    FileUtils.copyURLToFile(new URL(t1.getUrl()), new File(filename));
+                                    String data = Files.readString(Paths.get(filename)) ;
+                                    
+                                } catch (IOException ex) {
                                     System.out.println("error = " + ex.getMessage());
                                 }
                             });
                 });
+        System.out.println("json = " + json.toString());
 
     }
 }
